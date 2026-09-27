@@ -1,0 +1,524 @@
+/* ============================================================
+   GUARDIAN — style.css
+   ------------------------------------------------------------
+   Design intent: the home screen and general chrome use a
+   deliberately quiet, ordinary "day planner" palette so the app
+   doesn't read as a safety/panic tool at a glance. Once a safety
+   flow is actually engaged (active Safe Walk, triggered alert,
+   fake call), controls switch to large, high-contrast styling —
+   that contrast is intentional, not an inconsistency.
+   ============================================================ */
+
+:root {
+  /* Ordinary / home palette — quiet, neutral, unremarkable */
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --ink: #2b2d33;
+  --ink-soft: #6b6f76;
+  --line: #e7e6e2;
+  --accent: #5b6b7c;
+  --accent-soft: #eef1f3;
+
+  /* Safety-flow palette — only used once a flow is active */
+  --safe: #2f9e63;
+  --safe-dark: #237a4c;
+  --alert: #d64545;
+  --alert-dark: #b23636;
+  --warn-bg: #fff4f2;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-1: 0 1px 2px rgba(30, 32, 38, 0.06), 0 1px 12px rgba(30, 32, 38, 0.04);
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", Inter, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+button, input {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  background: var(--bg);
+}
+
+/* ---------------- Screens ---------------- */
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) 20px calc(24px + env(safe-area-inset-bottom));
+  animation: fade-in 0.18s ease;
+}
+.screen.active { display: block; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen { animation: none; }
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 8px;
+}
+.screen-header h2 { font-size: 1.15rem; margin: 0; font-weight: 650; }
+
+.back-btn {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  font-size: 1.3rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 8px;
+}
+.back-btn:hover { background: var(--accent-soft); }
+
+/* ---------------- Home screen ---------------- */
+
+.home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: calc(20px + env(safe-area-inset-top)) 20px 4px;
+}
+.home-eyebrow { margin: 0 0 2px; font-size: 0.8rem; color: var(--ink-soft); }
+.home-greeting { margin: 0; font-size: 1.5rem; font-weight: 650; letter-spacing: -0.01em; }
+
+/* The discreet SOS trigger. Intentionally looks like an inert
+   decorative mark, not a button — no border, no shadow, no hint
+   of interactivity. See #discreet-trigger in script.js. */
+.home-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--line);
+  border: none;
+  padding: 0;
+  margin-top: 6px;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.home-card {
+  margin: 16px 20px 8px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+}
+.home-card-label { margin: 0 0 4px; font-size: 0.75rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.home-card-body { margin: 0; font-size: 0.95rem; line-height: 1.4; }
+
+.home-list {
+  margin: 16px 20px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.home-list-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+}
+.home-list-item:last-child { border-bottom: none; }
+.home-list-item:active { background: var(--accent-soft); }
+.home-list-title { font-size: 1rem; font-weight: 550; color: var(--ink); }
+.home-list-sub { font-size: 0.82rem; color: var(--ink-soft); }
+
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+}
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  cursor: pointer;
+  padding: 4px 14px;
+}
+.bottom-nav-item.active { color: var(--accent); }
+.bn-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.55; }
+.bottom-nav-item.active .bn-dot { opacity: 1; }
+
+/* ---------------- Generic form controls ---------------- */
+
+.field-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 16px 0 6px;
+}
+.field-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+  line-height: 1.45;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 14px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--accent-soft); color: var(--accent); }
+.btn-text { background: none; color: var(--ink-soft); font-weight: 500; }
+.btn-large { padding: 15px 18px; font-size: 1.02rem; border-radius: var(--radius-md); }
+.btn-huge { padding: 22px 18px; font-size: 1.2rem; border-radius: var(--radius-lg); }
+.btn-safe { background: var(--safe); color: #fff; }
+.btn-safe:active { background: var(--safe-dark); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ---------------- Safe Walk panel ---------------- */
+
+.walk-panel { margin-top: 8px; }
+.hidden { display: none !important; }
+
+.minute-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px 8px;
+}
+.minute-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.minute-display { font-size: 1.3rem; font-weight: 650; }
+
+.walk-active-ring {
+  margin: 28px auto 8px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 8px solid var(--safe);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-1);
+}
+.walk-countdown { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.walk-eta-label { font-size: 0.78rem; color: var(--ink-soft); margin-top: 6px; }
+.walk-eta-time { font-size: 1rem; font-weight: 600; }
+
+.walk-gps-status {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 4px 0 20px;
+}
+
+.alert-icon {
+  width: 64px;
+  height: 64px;
+  margin: 24px auto 12px;
+  border-radius: 50%;
+  background: var(--alert);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#walk-triggered h3 { text-align: center; margin: 0 0 8px; }
+#walk-triggered p { text-align: center; color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; }
+
+/* ---------------- Silent SOS feedback ---------------- */
+
+.sos-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: rgba(43, 45, 51, 0.92);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  z-index: 500;
+  box-shadow: var(--shadow-1);
+}
+
+.sos-hold-indicator {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  z-index: 500;
+}
+.sos-hold-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.sos-hold-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--ink-soft);
+  transition: width 0.05s linear;
+}
+
+/* ---------------- Fake call ---------------- */
+
+.fakecall-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, #1c1e24, #0f1013);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(48px + env(safe-area-inset-top)) 24px calc(48px + env(safe-area-inset-bottom));
+}
+.fc-top { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 40px; }
+.fc-status { font-size: 0.95rem; opacity: 0.75; margin: 0 0 8px; }
+.fc-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #3a3d46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.fc-name { margin: 0; font-size: 1.6rem; font-weight: 650; }
+.fc-number { margin: 4px 0 0; opacity: 0.65; font-size: 0.9rem; }
+
+.fc-actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12px;
+}
+.fc-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.fc-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+.fc-decline .fc-icon { background: var(--alert); }
+.fc-answer .fc-icon { background: var(--safe); }
+
+.fc-inline-controls {
+  display: flex;
+  gap: 14px;
+  margin-top: 24px;
+}
+.fc-pill {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fc-end-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--alert);
+  color: #fff;
+  border: none;
+  font-size: 1.6rem;
+  transform: rotate(135deg);
+  cursor: pointer;
+}
+
+/* ---------------- Contacts ---------------- */
+
+.contacts-list { list-style: none; margin: 12px 0; padding: 0; }
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-1);
+}
+.contact-name { font-weight: 600; font-size: 0.95rem; }
+.contact-phone { font-size: 0.82rem; color: var(--ink-soft); }
+.contact-remove {
+  background: none;
+  border: none;
+  color: var(--alert);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* ---------------- Share / viewer ---------------- */
+
+.share-link-row { display: flex; gap: 8px; margin-top: 8px; }
+.share-link-row .field-input { flex: 1; }
+.share-link-row .btn { width: auto; margin-top: 0; }
+
+.viewer-map {
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius-md);
+  margin-top: 14px;
+  background: var(--accent-soft);
+}
+
+/* ---------------- Settings ---------------- */
+
+.settings-group {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  padding: 14px 16px 18px;
+  margin: 14px 0;
+}
+.settings-label { font-weight: 650; font-size: 0.9rem; margin: 0 0 4px; }
+
+.lang-switch { display: flex; gap: 8px; margin-top: 10px; }
+.lang-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.lang-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ---------------- Utility ---------------- */
+
+.install-banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 400;
+  font-size: 0.85rem;
+}
+.install-banner button {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}

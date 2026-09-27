@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f7f7f5" />
+<title>Guardian</title>
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<link rel="icon" href="./icon-192.png" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============================================================
+       HOME SCREEN
+       Deliberately ordinary: a plain day-planner look. No shield
+       icons, no red, no "SOS" anywhere visible. The only safety
+       entry points are a plain-looking bottom nav (Walk / Contacts
+       / Settings) and one small decorative dot in the header that
+       is the discreet long-press / tap-pattern SOS trigger — see
+       silent-sos section in script.js for why this element and
+       gesture were chosen.
+       ============================================================ -->
+  <main id="screen-home" class="screen active" data-screen="home">
+    <header class="home-header">
+      <div class="home-header-text">
+        <p class="home-eyebrow" id="home-date"></p>
+        <h1 class="home-greeting" id="home-greeting" data-i18n="greeting">Good evening</h1>
+      </div>
+      <!-- Discreet SOS trigger: looks like a plain status dot / logo mark.
+           Long-press (~2.5s) OR 5 quick taps triggers Silent SOS.
+           See #discreet-trigger handlers in script.js. -->
+      <button id="discreet-trigger" class="home-dot" aria-label="Guardian" title="Guardian"></button>
+    </header>
+
+    <section class="home-card" id="home-note-card">
+      <p class="home-card-label" data-i18n="quickNoteLabel">Quick note</p>
+      <p class="home-card-body" data-i18n="quickNoteBody">Tap "Walk" below before you head out, and set when you expect to arrive.</p>
+    </section>
+
+    <section class="home-list">
+      <button class="home-list-item" data-nav="walk">
+        <span class="home-list-title" data-i18n="navWalk">Walk</span>
+        <span class="home-list-sub" id="walk-status-preview" data-i18n="navWalkSub">Not started</span>
+      </button>
+      <button class="home-list-item" data-nav="call">
+        <span class="home-list-title" data-i18n="navCall">Quick call</span>
+        <span class="home-list-sub" data-i18n="navCallSub">Simulate an incoming call</span>
+      </button>
+      <button class="home-list-item" data-nav="share">
+        <span class="home-list-title" data-i18n="navShare">Share location</span>
+        <span class="home-list-sub" data-i18n="navShareSub">Let someone follow your trip</span>
+      </button>
+      <button class="home-list-item" data-nav="contacts">
+        <span class="home-list-title" data-i18n="navContacts">Contacts</span>
+        <span class="home-list-sub" id="contacts-count-preview" data-i18n="navContactsSub">No contacts yet</span>
+      </button>
+    </section>
+
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item active" data-nav="home">
+        <span class="bn-dot"></span>
+        <span data-i18n="navHome">Home</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="walk">
+        <span class="bn-dot"></span>
+        <span data-i18n="navWalk">Walk</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="settings">
+        <span class="bn-dot"></span>
+        <span data-i18n="navSettings">Settings</span>
+      </button>
+    </nav>
+  </main>
+
+  <!-- ============================================================
+       SAFE WALK TIMER SCREEN
+       Setup state is plain; ACTIVE state switches to large, high
+       contrast controls per the requirement that the safety flow
+       itself should be unmistakably obvious once engaged.
+       ============================================================ -->
+  <section class="screen" id="screen-walk" data-screen="walk">
+    <header class="screen-header">
+      <button class="back-btn" data-nav="home" aria-label="Back">&larr;</button>
+      <h2 data-i18n="walkTitle">Walk</h2>
+      <div style="width:2rem"></div>
+    </header>
+
+    <div id="walk-setup" class="walk-panel">
+      <label class="field-label" for="walk-destination" data-i18n="walkDestLabel">Where are you headed? (optional)</label>
+      <input id="walk-destination" class="field-input" type="text" data-i18n-placeholder="walkDestPlaceholder" placeholder="e.g. Home from bus stop" />
+
+      <label class="field-label" for="walk-minutes" data-i18n="walkEtaLabel">Expect to arrive in</label>
+      <div class="minute-picker">
+        <button class="minute-btn" data-mins="-5">&minus;5</button>
+        <div class="minute-display"><span id="walk-minutes-val">15</span> <span data-i18n="minutesUnit">min</span></div>
+        <button class="minute-btn" data-mins="5">+5</button>
+      </div>
+
+      <p class="field-hint" id="walk-contacts-hint" data-i18n="walkContactsHint">Alerts go to your saved emergency contacts.</p>
+
+      <button id="walk-start-btn" class="btn btn-primary btn-large" data-i18n="walkStart">Start Safe Walk</button>
+    </div>
+
+    <div id="walk-active" class="walk-panel hidden">
+      <div class="walk-active-ring">
+        <div class="walk-countdown" id="walk-countdown">15:00</div>
+        <div class="walk-eta-label" data-i18n="walkArriveBy">Check in by</div>
+        <div class="walk-eta-time" id="walk-eta-time">--:--</div>
+      </div>
+
+      <p class="walk-gps-status" id="walk-gps-status" data-i18n="gpsAcquiring">Finding your location&hellip;</p>
+
+      <button id="walk-arrived-btn" class="btn btn-safe btn-huge" data-i18n="walkArrivedSafe">I&rsquo;m Safe / Arrived</button>
+      <button id="walk-addtime-btn" class="btn btn-secondary" data-i18n="walkAddTime">+10 min</button>
+      <button id="walk-cancel-btn" class="btn btn-text" data-i18n="walkCancel">Cancel walk</button>
+    </div>
+
+    <div id="walk-triggered" class="walk-panel hidden">
+      <div class="alert-icon">!</div>
+      <h3 data-i18n="alertSentTitle">Alert sent to your contacts</h3>
+      <p id="walk-triggered-detail" data-i18n="alertSentDetail">You didn't check in by your arrival time, so Guardian prepared alerts with your last known location.</p>
+      <div id="walk-triggered-contacts" class="contacts-list"></div>
+      <button id="walk-triggered-ok-btn" class="btn btn-primary btn-large" data-i18n="ok">OK</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SILENT SOS — confirmation surface
+       By design there is almost no visible UI change on trigger.
+       This small toast is the ONLY feedback, auto-dismisses, and
+       never uses red/alarm styling that would be visible across
+       a room. See silent-sos section in script.js.
+       ============================================================ -->
+  <div id="sos-toast" class="sos-toast hidden" role="status" aria-live="polite">
+    <span id="sos-toast-text" data-i18n="sosToastSending">Sending&hellip;</span>
+  </div>
+
+  <!-- Hold-to-cancel panel: appears ONLY while the long-press is in
+       progress, so the person can feel/see progress and abort an
+       accidental hold. Deliberately subtle, not alarming. -->
+  <div id="sos-hold-indicator" class="sos-hold-indicator hidden">
+    <div class="sos-hold-bar"><div class="sos-hold-fill" id="sos-hold-fill"></div></div>
+  </div>
+
+  <!-- ============================================================
+       FAKE CALL — full screen incoming call UI
+       ============================================================ -->
+  <div id="fakecall-incoming" class="fakecall-overlay hidden">
+    <div class="fc-top">
+      <p class="fc-status" data-i18n="fcIncoming">Incoming call</p>
+      <div class="fc-avatar" id="fc-avatar">M</div>
+      <h2 class="fc-name" id="fc-name">Mom</h2>
+      <p class="fc-number" id="fc-number">+880 000 000</p>
+    </div>
+    <div class="fc-actions">
+      <button id="fc-decline-btn" class="fc-btn fc-decline" aria-label="Decline">
+        <span class="fc-icon">&#9587;</span>
+        <span data-i18n="fcDecline">Decline</span>
+      </button>
+      <button id="fc-answer-btn" class="fc-btn fc-answer" aria-label="Answer">
+        <span class="fc-icon">&#9742;</span>
+        <span data-i18n="fcAnswer">Answer</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="fakecall-active" class="fakecall-overlay hidden">
+    <div class="fc-top">
+      <p class="fc-status" id="fc-active-timer">00:00</p>
+      <div class="fc-avatar" id="fc-avatar-2">M</div>
+      <h2 class="fc-name" id="fc-name-2">Mom</h2>
+    </div>
+    <div class="fc-inline-controls">
+      <div class="fc-pill">&#128264; <span data-i18n="fcMute">Mute</span></div>
+      <div class="fc-pill">&#8942; &#8942; &#8942; <span data-i18n="fcKeypad">Keypad</span></div>
+      <div class="fc-pill">&#128266; <span data-i18n="fcSpeaker">Speaker</span></div>
+    </div>
+    <button id="fc-end-btn" class="fc-end-btn" aria-label="End call">&#9742;</button>
+  </div>
+
+  <!-- ============================================================
+       LIVE LOCATION SHARE
+       ============================================================ -->
+  <section class="screen" id="screen-share" data-screen="share">
+    <header class="screen-header">
+      <button class="back-btn" data-nav="home" aria-label="Back">&larr;</button>
+      <h2 data-i18n="shareTitle">Share location</h2>
+      <div style="width:2rem"></div>
+    </header>
+
+    <div id="share-setup" class="walk-panel">
+      <p class="field-hint" data-i18n="shareIntro">Generate a private link that shows your live position for a set time. Needs an internet connection.</p>
+
+      <label class="field-label" for="share-minutes" data-i18n="shareDurationLabel">Share for</label>
+      <div class="minute-picker">
+        <button class="minute-btn" data-share-mins="-15">&minus;15</button>
+        <div class="minute-display"><span id="share-minutes-val">30</span> <span data-i18n="minutesUnit">min</span></div>
+        <button class="minute-btn" data-share-mins="15">+15</button>
+      </div>
+
+      <button id="share-start-btn" class="btn btn-primary btn-large" data-i18n="shareStart">Start sharing</button>
+      <p class="field-hint" id="share-config-hint"></p>
+    </div>
+
+    <div id="share-active" class="walk-panel hidden">
+      <p class="field-hint" data-i18n="shareActiveHint">Anyone with this link can see your live position until it expires.</p>
+      <div class="share-link-row">
+        <input id="share-link-input" class="field-input" type="text" readonly />
+        <button id="share-copy-btn" class="btn btn-secondary" data-i18n="shareCopy">Copy</button>
+      </div>
+      <p class="walk-eta-label" data-i18n="shareExpiresLabel">Expires at</p>
+      <p class="walk-eta-time" id="share-expires-time">--:--</p>
+      <button id="share-stop-btn" class="btn btn-text" data-i18n="shareStop">Stop sharing</button>
+    </div>
+  </section>
+
+  <!-- Read-only viewer, shown instead of the app when opened as
+       index.html?share=ID (see live-share section in script.js) -->
+  <section class="screen" id="screen-viewer" data-screen="viewer">
+    <header class="screen-header">
+      <h2 data-i18n="viewerTitle">Live location</h2>
+      <div style="width:2rem"></div>
+    </header>
+    <p class="field-hint" id="viewer-status" data-i18n="viewerConnecting">Connecting&hellip;</p>
+    <div id="viewer-map" class="viewer-map"></div>
+  </section>
+
+  <!-- ============================================================
+       CONTACTS
+       ============================================================ -->
+  <section class="screen" id="screen-contacts" data-screen="contacts">
+    <header class="screen-header">
+      <button class="back-btn" data-nav="home" aria-label="Back">&larr;</button>
+      <h2 data-i18n="contactsTitle">Emergency contacts</h2>
+      <div style="width:2rem"></div>
+    </header>
+
+    <ul id="contacts-list" class="contacts-list"></ul>
+
+    <div id="pending-alerts" class="contacts-list"></div>
+
+    <form id="contact-form" class="walk-panel">
+      <label class="field-label" for="contact-name" data-i18n="contactNameLabel">Name</label>
+      <input id="contact-name" class="field-input" type="text" required />
+      <label class="field-label" for="contact-phone" data-i18n="contactPhoneLabel">Phone number</label>
+      <input id="contact-phone" class="field-input" type="tel" required data-i18n-placeholder="contactPhonePlaceholder" placeholder="+8801XXXXXXXXX" />
+      <button type="submit" class="btn btn-primary" data-i18n="contactAdd">Add contact</button>
+    </form>
+
+    <button id="test-alert-btn" class="btn btn-secondary btn-large" data-i18n="testAlert">Send test alert</button>
+    <p class="field-hint" data-i18n="testAlertHint">Sends a clearly labeled TEST message so you can confirm everything works before you rely on it.</p>
+  </section>
+
+  <!-- ============================================================
+       SETTINGS
+       ============================================================ -->
+  <section class="screen" id="screen-settings" data-screen="settings">
+    <header class="screen-header">
+      <button class="back-btn" data-nav="home" aria-label="Back">&larr;</button>
+      <h2 data-i18n="settingsTitle">Settings</h2>
+      <div style="width:2rem"></div>
+    </header>
+
+    <div class="settings-group">
+      <p class="settings-label" data-i18n="settingsLanguage">Language</p>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="bn">বাংলা</button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <p class="settings-label" data-i18n="settingsFakeCaller">Fake call details</p>
+      <label class="field-label" for="setting-caller-name" data-i18n="fcNameLabel">Caller name</label>
+      <input id="setting-caller-name" class="field-input" type="text" />
+      <label class="field-label" for="setting-caller-number" data-i18n="fcNumberLabel">Caller number</label>
+      <input id="setting-caller-number" class="field-input" type="text" />
+    </div>
+
+    <div class="settings-group">
+      <p class="settings-label" data-i18n="settingsBackend">Live share backend (optional)</p>
+      <p class="field-hint" data-i18n="settingsBackendHint">Only needed for live map sharing. Create a free Supabase project and paste its details here. Everything else in Guardian works without this.</p>
+      <label class="field-label" for="setting-supabase-url">Supabase URL</label>
+      <input id="setting-supabase-url" class="field-input" type="text" placeholder="https://xxxx.supabase.co" />
+      <label class="field-label" for="setting-supabase-key">Supabase anon key</label>
+      <input id="setting-supabase-key" class="field-input" type="text" />
+    </div>
+
+    <button id="settings-save-btn" class="btn btn-primary btn-large" data-i18n="save">Save</button>
+  </section>
+
+</div>
+
+<script src="./script.js"></script>
+</body>
+</html>
